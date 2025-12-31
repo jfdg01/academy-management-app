@@ -12,7 +12,7 @@ I built this platform to handle all of that complexity without the fragility of 
 
 ---
 
-## � Under the Hood
+## 🛠 Under the Hood
 
 The goal was simple: Enterprise-grade architecture that doesn't feel like legacy software.
 
