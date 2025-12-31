@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: app-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin-jfdg-admin
+      POSTGRES_DB: academia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - academia-network
+
+  # Add your Spring Boot application
+  app:
+    build: .
+    container_name: academia-app
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://app-db:5432/academia_db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin-jfdg-admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - academia-network
+
+volumes:
+  postgres_data:
+
+networks:
+  academia-network:
+    driver: bridge

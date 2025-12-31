@@ -1,0 +1,58 @@
+# === DEV SETUP (Only Database) ===
+
+# Start database in background
+docker-compose -f docker-compose.dev.yml up -d
+
+# View database logs
+docker-compose -f docker-compose.dev.yml logs postgres
+
+# Stop database
+docker-compose -f docker-compose.dev.yml down
+
+# Stop and remove database data (fresh start)
+docker-compose -f docker-compose.dev.yml down -v
+
+# === PRODUCTION/FULL SETUP (Database + Spring Boot App) ===
+
+# Build and start both database and Spring Boot app
+docker-compose up --build
+
+# Build and start in background (detached mode)
+docker-compose up --build -d
+
+# Start without rebuilding (if no code changes)
+docker-compose up
+
+# Stop both services
+docker-compose down
+
+# Stop and remove all data (fresh start)
+docker-compose down -v
+
+# === USEFUL MANAGEMENT COMMANDS ===
+
+# View logs from all services
+docker-compose logs
+
+# View logs from specific service
+docker-compose logs app
+docker-compose logs postgres
+
+# Follow logs in real-time
+docker-compose logs -f app
+
+# Check running containers
+docker-compose ps
+
+# Restart specific service
+docker-compose restart app
+docker-compose restart postgres
+
+# === DEVELOPMENT WORKFLOW ===
+# 1. Start database only: docker-compose -f docker-compose.dev.yml up -d
+# 2. Run Spring Boot app in IntelliJ
+# 3. When done, stop the DB: docker-compose -f docker-compose.dev.yml down
+
+# === PRODUCTION WORKFLOW ===
+# 1. Build and start everything: docker-compose up --build
+# 2. When done: docker-compose down
