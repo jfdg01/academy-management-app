@@ -1,65 +1,108 @@
-# Academy Management App
+# Gestor de Academias
 
-![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+**Plataforma full-stack (mi TFG — Trabajo Fin de Grado) para gestionar una academia de principio a fin: matrícula de alumnos, calificaciones y pagos, todo en una sola herramienta.**
+
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![SvelteKit](https://img.shields.io/badge/SvelteKit-2.16-FF3E00?style=for-the-badge&logo=svelte&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Stripe](https://img.shields.io/badge/Stripe-Payments-008CDD?style=for-the-badge&logo=stripe&logoColor=white)
-
-Running an efficient educational academy means managing a lot of moving parts—from student enrollment and payments to exercise grading and material distribution.
-
-I built this platform to handle all of that complexity without the fragility of patched-together spreadsheets. It combines the rock-solid stability of a **Spring Boot** backend with the modern, reactive experience of **SvelteKit**.
+![Stripe](https://img.shields.io/badge/Stripe-Pagos-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 ---
 
-## 🛠 Under the Hood
+## El problema
 
-The goal was simple: Enterprise-grade architecture that doesn't feel like legacy software.
+Llevar una academia significa hacer malabares entre hojas de cálculo sueltas, cobros manuales y correos para entregar notas y material. Es frágil, lento y se rompe en cuanto crece el número de alumnos.
 
-*   **Spring Boot 3.5 & Java 21**: The backend is strict. It handles the heavy lifting, security (OAuth2 + JWT), and data integrity. It’s built to scale, not just to demo.
-*   **SvelteKit (Frontend)**: I didn't want a clunky admin panel. The frontend is fast, responsive, and uses Tailwind so it looks good on any device.
-*   **PostgreSQL**: Relational data requires a relational DB. No shortcuts here.
-*   **Docker Compose**: The entire stack (DB, API, Frontend) spins up with a single command.
+Esta plataforma unifica **matrícula, calificaciones y pagos** en un único sistema, con cada rol viendo exactamente lo que necesita y los cobros automatizados de extremo a extremo.
 
-## ✨ Why It Works
+---
 
-### Role-Based Access that actually works
-*   **Admins**: Have god-mode. They manage users, finances, and global settings.
-*   **Professors**: Focus on teaching. They create courses, upload materials, and grade submissions.
-*   **Students**: A clean dashboard to track progress, submit work, and pay fees.
+## Cómo funciona
 
-### Money handled right
-Integration with **Stripe** means payments are secure and automated. Webhooks handle the status updates so you don't have to manually check who paid what.
+```mermaid
+flowchart LR
+    U[Alumnos / Profesores / Admin] --> FE["SvelteKit<br/>(frontend web)"]
+    FE -->|API REST| BE["Spring Boot<br/>API · Java 21"]
+    BE -->|JPA| DB[("PostgreSQL 16")]
+    BE <-->|Pagos + Webhooks| ST[[Stripe]]
 
-### The Feedback Loop
-The core of learning is feedback. The exercise system allows students to upload work (up to 10MB) and professors to grade it directly within the platform.
+    subgraph Docker Compose
+        BE
+        DB
+    end
+```
 
-## 🚀 Running Locally
+**Decisiones técnicas clave:**
 
-You can run the whole thing in Docker, or peel it apart for development.
+- **Control de acceso por roles** — Admin, Profesor y Alumno. Spring Security con OAuth2 + JWT asegura que cada usuario solo accede a lo suyo (gestión global, docencia o su propio progreso).
+- **Pagos con Stripe** — cobros seguros y automatizados; los *webhooks* actualizan el estado de cada pago sin intervención manual.
+- **Diseñado para 1000 usuarios concurrentes** — API REST *stateless* sobre Spring Boot y PostgreSQL relacional, pensada para escalar bajo carga.
+- **API contract-first** — el cliente TypeScript del frontend se genera desde el OpenAPI del backend (springdoc), evitando desajustes entre front y back.
+- **Observabilidad incluida** — Actuator + Micrometer/Prometheus para métricas en producción.
 
-### The Easy Way (Docker)
+---
+
+## Stack
+
+| Capa         | Tecnologías |
+|--------------|-------------|
+| **Frontend** | SvelteKit 2.16 · Svelte 5 · Tailwind CSS 4 · Flowbite · TypeScript · Vite · `@stripe/stripe-js` |
+| **Backend**  | Java 21 · Spring Boot 3.5.3 · Spring Security (OAuth2 + JWT) · Spring Data JPA · HATEOAS · springdoc OpenAPI |
+| **Infra**    | PostgreSQL 16 · Docker Compose · Actuator + Micrometer/Prometheus |
+
+---
+
+## En números
+
+> - **1000** usuarios concurrentes como objetivo de diseño
+> - **3** roles con permisos diferenciados (Admin · Profesor · Alumno)
+> - **1** comando para levantar todo el stack con Docker
+> - **3** dominios unificados: matrícula · calificaciones · pagos
+
+---
+
+## Ejecutar en local
+
+### Opción rápida — todo con Docker
+
+Levanta la base de datos y la API juntas:
+
 ```bash
 cd backend/app
-docker-compose up -d
+docker-compose up --build -d
 ```
-This spins up the Database and the Backend.
 
-### The Dev Way
+La API queda disponible en `http://localhost:8080`.
 
-1.  **Backend**:
-    ```bash
-    cd backend/app
-    ./mvnw spring-boot:run
-    ```
+### Opción desarrollo
 
-2.  **Frontend**:
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
+**1. Solo la base de datos** (para desarrollar el backend desde el IDE):
 
-## 📄 License
+```bash
+cd backend/app
+docker-compose -f docker-compose.db.yml up -d
+```
 
-Code is for private reference.
+**2. Backend** (Spring Boot, puerto 8080):
+
+```bash
+cd backend/app
+./mvnw spring-boot:run
+```
+
+**3. Frontend** (SvelteKit + Vite):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**4. Webhooks de Stripe** (opcional, para probar pagos en local):
+
+```bash
+cd frontend
+npm run stripe
+```
